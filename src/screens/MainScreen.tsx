@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -19,11 +21,22 @@ interface Transaction {
   date: Date;
 }
 
+interface CurrencyRate {
+  code: string;
+  name: string;
+  rate: number;
+}
+
 const MainScreen = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState<'income' | 'expense'>('expense');
+  const [activeTab, setActiveTab] = useState<'home' | 'currencies' | 'settings'>('home');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [currencies, setCurrencies] = useState<CurrencyRate[]>([]);
+  const [loadingCurrencies, setLoadingCurrencies] = useState(false);
+  const [baseCurrency, setBaseCurrency] = useState('EUR');
 
   const addTransaction = () => {
     if (!amount || !description.trim()) {
@@ -73,33 +86,85 @@ const MainScreen = () => {
     }).format(amount);
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
+  const fetchCurrencies = async () => {
+    setLoadingCurrencies(true);
+    try {
+      // Using exchangerate-api.com free API (no API key required for basic usage)
+      const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${baseCurrency}`);
+      const data = await response.json();
+      
+      if (data.rates) {
+        // Most commonly used currencies
+        const popularCurrencies = ['USD', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'CNY', 'INR', 'BRL', 'RUB'];
+        const currencyList: CurrencyRate[] = popularCurrencies
+          .filter(code => data.rates[code])
+          .map(code => ({
+            code,
+            name: getCurrencyName(code),
+            rate: data.rates[code],
+          }));
+        setCurrencies(currencyList);
+      } else {
+        Alert.alert('Error', 'Failed to fetch currency rates');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch currency rates. Please check your internet connection.');
+    } finally {
+      setLoadingCurrencies(false);
+    }
+  };
+
+  const getCurrencyName = (code: string): string => {
+    const names: { [key: string]: string } = {
+      USD: 'US Dollar',
+      EUR: 'Euro',
+      GBP: 'British Pound',
+      JPY: 'Japanese Yen',
+      CHF: 'Swiss Franc',
+      CAD: 'Canadian Dollar',
+      AUD: 'Australian Dollar',
+      CNY: 'Chinese Yuan',
+      INR: 'Indian Rupee',
+      BRL: 'Brazilian Real',
+      RUB: 'Russian Ruble',
+    };
+    return names[code] || code;
+  };
+
+  useEffect(() => {
+    if (activeTab === 'currencies') {
+      fetchCurrencies();
+    }
+  }, [activeTab, baseCurrency]);
+
+  const renderHomeTab = () => {
+    const themeStyles = getThemeStyles();
+    return (
+      <>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>fineas</Text>
-          <Text style={styles.subtitle}>Track your money, build your future</Text>
+        <View style={[styles.header, themeStyles.header]}>
+          <Text style={[styles.title, themeStyles.title]}>fineas</Text>
+          <Text style={[styles.subtitle, themeStyles.subtitle]}>Track your money, build your future</Text>
         </View>
 
         {/* Summary Cards */}
         <View style={styles.summaryContainer}>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Income</Text>
+          <View style={[styles.summaryCard, themeStyles.card]}>
+            <Text style={[styles.summaryLabel, themeStyles.textSecondary]}>Income</Text>
             <Text style={styles.summaryAmountIncome}>
               {formatCurrency(getTotalIncome())}
             </Text>
           </View>
           
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Expenses</Text>
+          <View style={[styles.summaryCard, themeStyles.card]}>
+            <Text style={[styles.summaryLabel, themeStyles.textSecondary]}>Expenses</Text>
             <Text style={styles.summaryAmountExpense}>
               {formatCurrency(getTotalExpenses())}
             </Text>
           </View>
           
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Balance</Text>
+          <View style={[styles.summaryCard, themeStyles.card]}>
+            <Text style={[styles.summaryLabel, themeStyles.textSecondary]}>Balance</Text>
             <Text style={[
               styles.summaryAmount,
               getBalance() >= 0 ? styles.positiveBalance : styles.negativeBalance
@@ -110,21 +175,22 @@ const MainScreen = () => {
         </View>
 
         {/* Add Transaction Form */}
-        <View style={styles.formContainer}>
-          <Text style={styles.formTitle}>Add New Transaction</Text>
+        <View style={[styles.formContainer, themeStyles.card]}>
+          <Text style={[styles.formTitle, themeStyles.text]}>Add New Transaction</Text>
           
           {/* Type Selector */}
           <View style={styles.typeSelector}>
             <TouchableOpacity
               style={[
                 styles.typeButton,
+                themeStyles.button,
                 type === 'expense' && styles.typeButtonActive
               ]}
               onPress={() => setType('expense')}
             >
               <Text style={[
                 styles.typeButtonText,
-                type === 'expense' && styles.typeButtonTextActive
+                type === 'expense' ? styles.typeButtonTextActive : themeStyles.textSecondary
               ]}>
                 💸 Expense
               </Text>
@@ -133,13 +199,14 @@ const MainScreen = () => {
             <TouchableOpacity
               style={[
                 styles.typeButton,
+                themeStyles.button,
                 type === 'income' && styles.typeButtonActive
               ]}
               onPress={() => setType('income')}
             >
               <Text style={[
                 styles.typeButtonText,
-                type === 'income' && styles.typeButtonTextActive
+                type === 'income' ? styles.typeButtonTextActive : themeStyles.textSecondary
               ]}>
                 💰 Income
               </Text>
@@ -148,10 +215,11 @@ const MainScreen = () => {
 
           {/* Amount Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Amount (€)</Text>
+            <Text style={[styles.inputLabel, themeStyles.text]}>Amount (€)</Text>
             <TextInput
-              style={styles.amountInput}
+              style={[styles.amountInput, themeStyles.input]}
               placeholder="0.00"
+              placeholderTextColor={isDarkMode ? '#999' : '#999'}
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
@@ -160,10 +228,11 @@ const MainScreen = () => {
 
           {/* Description Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Description</Text>
+            <Text style={[styles.inputLabel, themeStyles.text]}>Description</Text>
             <TextInput
-              style={styles.descriptionInput}
+              style={[styles.descriptionInput, themeStyles.input]}
               placeholder="What was this for?"
+              placeholderTextColor={isDarkMode ? '#999' : '#999'}
               value={description}
               onChangeText={setDescription}
             />
@@ -176,30 +245,30 @@ const MainScreen = () => {
         </View>
 
         {/* Transactions List */}
-        <View style={styles.transactionsContainer}>
-          <Text style={styles.transactionsTitle}>
+        <View style={[styles.transactionsContainer, themeStyles.card]}>
+          <Text style={[styles.transactionsTitle, themeStyles.text]}>
             Recent Transactions ({transactions.length})
           </Text>
           
           {transactions.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No transactions yet</Text>
-              <Text style={styles.emptyStateSubtext}>
+              <Text style={[styles.emptyStateText, themeStyles.textSecondary]}>No transactions yet</Text>
+              <Text style={[styles.emptyStateSubtext, themeStyles.textSecondary]}>
                 Add your first transaction above to get started!
               </Text>
             </View>
           ) : (
             transactions.map((transaction) => (
-              <View key={transaction.id} style={styles.transactionItem}>
+              <View key={transaction.id} style={[styles.transactionItem, themeStyles.border]}>
                 <View style={styles.transactionLeft}>
                   <Text style={styles.transactionType}>
                     {transaction.type === 'income' ? '💰' : '💸'}
                   </Text>
                   <View>
-                    <Text style={styles.transactionDescription}>
+                    <Text style={[styles.transactionDescription, themeStyles.text]}>
                       {transaction.description}
                     </Text>
-                    <Text style={styles.transactionDate}>
+                    <Text style={[styles.transactionDate, themeStyles.textSecondary]}>
                       {transaction.date.toLocaleDateString()}
                     </Text>
                   </View>
@@ -215,7 +284,171 @@ const MainScreen = () => {
             ))
           )}
         </View>
+      </>
+    );
+  };
+
+  const renderCurrenciesTab = () => {
+    const themeStyles = getThemeStyles();
+    return (
+      <>
+        <View style={[styles.header, themeStyles.header]}>
+          <Text style={[styles.title, themeStyles.title]}>Currency Rates</Text>
+          <Text style={[styles.subtitle, themeStyles.subtitle]}>Live exchange rates</Text>
+        </View>
+
+        <View style={[styles.currenciesContainer, themeStyles.card]}>
+          {loadingCurrencies ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#2E86AB" />
+              <Text style={[styles.loadingText, themeStyles.textSecondary]}>Loading rates...</Text>
+            </View>
+          ) : currencies.length > 0 ? (
+            <>
+              <View style={styles.currencyHeader}>
+                <Text style={[styles.currencyHeaderText, themeStyles.text]}>Base: {baseCurrency}</Text>
+                <TouchableOpacity
+                  style={[styles.refreshButton, themeStyles.button]}
+                  onPress={fetchCurrencies}
+                >
+                  <Text style={[styles.refreshButtonText, themeStyles.text]}>🔄 Refresh</Text>
+                </TouchableOpacity>
+              </View>
+              {currencies.map((currency) => (
+                <View key={currency.code} style={[styles.currencyItem, themeStyles.border]}>
+                  <View style={styles.currencyLeft}>
+                    <Text style={[styles.currencyCode, themeStyles.text]}>{currency.code}</Text>
+                    <Text style={[styles.currencyName, themeStyles.textSecondary]}>{currency.name}</Text>
+                  </View>
+                  <Text style={[styles.currencyRate, themeStyles.text]}>
+                    {currency.rate.toFixed(4)}
+                  </Text>
+                </View>
+              ))}
+            </>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={[styles.emptyStateText, themeStyles.textSecondary]}>No currency data available</Text>
+            </View>
+          )}
+        </View>
+      </>
+    );
+  };
+
+  const renderSettingsTab = () => {
+    const themeStyles = getThemeStyles();
+    return (
+      <>
+        <View style={[styles.header, themeStyles.header]}>
+          <Text style={[styles.title, themeStyles.title]}>Settings</Text>
+          <Text style={[styles.subtitle, themeStyles.subtitle]}>Customize your app</Text>
+        </View>
+
+        <View style={[styles.settingsContainer, themeStyles.card]}>
+          <View style={[styles.settingItem, themeStyles.border]}>
+            <View style={styles.settingLeft}>
+              <Text style={[styles.settingLabel, themeStyles.text]}>Dark Mode</Text>
+              <Text style={[styles.settingDescription, themeStyles.textSecondary]}>
+                Switch between light and dark theme
+              </Text>
+            </View>
+            <Switch
+              value={isDarkMode}
+              onValueChange={setIsDarkMode}
+              trackColor={{ false: '#767577', true: '#2E86AB' }}
+              thumbColor={isDarkMode ? '#fff' : '#f4f3f4'}
+            />
+          </View>
+        </View>
+      </>
+    );
+  };
+
+  const getThemeStyles = () => {
+    if (isDarkMode) {
+      return {
+        header: { backgroundColor: '#1a1a1a' },
+        card: { backgroundColor: '#2a2a2a' },
+        text: { color: '#ffffff' },
+        textSecondary: { color: '#b0b0b0' },
+        title: { color: '#2E86AB' },
+        subtitle: { color: '#b0b0b0' },
+        button: { backgroundColor: '#3a3a3a', borderColor: '#4a4a4a' },
+        input: { backgroundColor: '#3a3a3a', borderColor: '#4a4a4a', color: '#ffffff' },
+        border: { borderBottomColor: '#3a3a3a' },
+      };
+    }
+    return {
+      header: { backgroundColor: '#fff' },
+      card: { backgroundColor: '#fff' },
+      text: { color: '#333' },
+      textSecondary: { color: '#666' },
+      title: { color: '#2E86AB' },
+      subtitle: { color: '#666' },
+      button: { backgroundColor: '#f5f5f5', borderColor: '#e0e0e0' },
+      input: { backgroundColor: '#f8f9fa', borderColor: '#e0e0e0', color: '#333' },
+      border: { borderBottomColor: '#f0f0f0' },
+    };
+  };
+
+  const themeStyles = getThemeStyles();
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#f8f9fa' }]}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        {activeTab === 'home' && renderHomeTab()}
+        {activeTab === 'currencies' && renderCurrenciesTab()}
+        {activeTab === 'settings' && renderSettingsTab()}
       </ScrollView>
+
+      {/* Bottom Navigation Bar */}
+      <View style={[styles.bottomNav, themeStyles.card, { borderTopColor: isDarkMode ? '#3a3a3a' : '#e0e0e0' }]}>
+        <TouchableOpacity
+          style={[
+            styles.navButton,
+            activeTab === 'home' && (isDarkMode ? { backgroundColor: '#3a3a3a' } : styles.navButtonActive)
+          ]}
+          onPress={() => setActiveTab('home')}
+        >
+          <Text style={[
+            styles.navButtonText,
+            activeTab === 'home' ? styles.navButtonTextActive : themeStyles.textSecondary
+          ]}>
+            Home
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.navButton,
+            activeTab === 'currencies' && (isDarkMode ? { backgroundColor: '#3a3a3a' } : styles.navButtonActive)
+          ]}
+          onPress={() => setActiveTab('currencies')}
+        >
+          <Text style={[
+            styles.navButtonText,
+            activeTab === 'currencies' ? styles.navButtonTextActive : themeStyles.textSecondary
+          ]}>
+            Currencies
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.navButton,
+            activeTab === 'settings' && (isDarkMode ? { backgroundColor: '#3a3a3a' } : styles.navButtonActive)
+          ]}
+          onPress={() => setActiveTab('settings')}
+        >
+          <Text style={[
+            styles.navButtonText,
+            activeTab === 'settings' ? styles.navButtonTextActive : themeStyles.textSecondary
+          ]}>
+            Settings
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -227,6 +460,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   header: {
     padding: 20,
@@ -449,6 +685,152 @@ const styles = StyleSheet.create({
   },
   expenseAmount: {
     color: '#F44336',
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  navButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  navButtonActive: {
+    backgroundColor: '#f0f7fa',
+  },
+  navButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+  },
+  navButtonTextActive: {
+    color: '#2E86AB',
+    fontWeight: '600',
+  },
+  currenciesContainer: {
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 20,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  currencyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  currencyHeaderText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  refreshButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#f5f5f5',
+  },
+  refreshButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#2E86AB',
+  },
+  currencyItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  currencyLeft: {
+    flex: 1,
+  },
+  currencyCode: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 4,
+  },
+  currencyName: {
+    fontSize: 14,
+    color: '#666',
+  },
+  currencyRate: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2E86AB',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#999',
+  },
+  settingsContainer: {
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 20,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  settingLeft: {
+    flex: 1,
+    marginRight: 16,
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  settingDescription: {
+    fontSize: 14,
+    color: '#666',
   },
 });
 
