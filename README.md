@@ -1,99 +1,271 @@
-# Fineas - Simple Budget App
+# Fineas - Personal Finance Tracker
 
-A clean, simple budget tracking app built with React Native and Expo. Perfect for learning and building upon!
+A modern, feature-rich personal finance tracking app built with React Native and Expo. Track your money, manage transactions, monitor currency rates, and customize your experience with dark mode and accessibility options.
 
-## What It Does
+![Fineas App](https://img.shields.io/badge/React%20Native-0.81.5-blue) ![Expo](https://img.shields.io/badge/Expo-54.0.25-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)
 
-- **Track Income & Expenses**: Add transactions with amounts and descriptions
-- **See Your Balance**: Real-time calculation of income, expenses, and balance
-- **Transaction History**: View all your recent transactions
-- **Simple UI**: Clean, intuitive interface that's easy to use
+## 🎯 Overview
 
-## Features
+Fineas is a comprehensive personal finance management app that helps you:
+- Track income and expenses in real-time
+- Monitor live currency exchange rates
+- Manage your financial data with an intuitive interface
+- Customize your experience with themes and accessibility options
 
-✅ **Single Screen Design** - Everything in one place  
-✅ **Add Transactions** - Income or expense entries  
-✅ **Real-time Totals** - See your financial status instantly  
-✅ **Transaction List** - Keep track of your money flow  
-✅ **Responsive Design** - Works on all screen sizes  
+## ✨ Features
 
-## Tech Stack
+### 📱 Home Tab
+- **Transaction Management**
+  - Add income and expense transactions
+  - Real-time balance calculation
+  - Transaction history with dates and descriptions
+  - Visual indicators (💰 for income, 💸 for expenses)
+  
+- **Financial Overview**
+  - Income summary card
+  - Expenses summary card
+  - Balance display (with color coding for positive/negative)
+  - Real-time totals update
 
-- **React Native** - Cross-platform mobile development
-- **Expo** - Development platform and build tools
-- **TypeScript** - Type-safe JavaScript
-- **Safe Area Context** - Safe area handling
+- **Smart Warnings**
+  - ⚠️ Insufficient funds warning when expense exceeds balance
+  - Real-time visual feedback in the input field
+  - Confirmation dialog before proceeding with insufficient funds
 
-## Getting Started
+### 💱 Currencies Tab
+- **Live Exchange Rates**
+  - Real-time currency rates from free API
+  - Support for 20+ major currencies
+  - Base currency selection (USD, EUR, GBP, JPY, CHF, CAD, AUD, CNY, etc.)
+  
+- **Currency Filtering**
+  - Toggle between major currencies only or all available currencies
+  - Alphabetically sorted currency list
+  - Manual refresh option
+  - Loading indicators
+
+- **Currency Information**
+  - Currency code and full name
+  - Exchange rate display (4 decimal precision)
+  - Base currency indicator
+
+### ⚙️ Settings Tab
+- **Theme Customization**
+  - 🌓 Dark mode / Light mode toggle
+  - Seamless theme switching
+  - Theme-aware UI components
+
+- **Accessibility**
+  - Font size adjustment (Small, Medium, Large)
+  - App-wide font scaling
+  - Improved readability options
+
+- **Currency Settings**
+  - Base currency selection (8 popular options)
+  - Settings persist across app sessions
+  - Instant rate updates when base currency changes
+
+### 🧭 Navigation
+- **Bottom Navigation Bar**
+  - Quick access to Home, Currencies, and Settings
+  - Active tab highlighting
+  - Theme-aware navigation bar
+
+## 🛠️ Tech Stack
+
+- **React Native** (v0.81.5) - Cross-platform mobile framework
+- **Expo** (v54.0.25) - Development platform and build tools
+- **TypeScript** (v5.9.2) - Type-safe JavaScript
+- **React Native Safe Area Context** - Safe area handling
+- **Expo Status Bar** - Status bar management
+
+## 📦 Installation
 
 ### Prerequisites
 
 - Node.js (v16 or higher)
 - npm or yarn
-- Expo CLI
-- iOS Simulator or Android Emulator (or physical device)
+- Expo CLI (`npm install -g expo-cli`)
+- iOS Simulator, Android Emulator, or physical device with Expo Go app
 
-### Installation
+### Setup
 
-1. **Install dependencies**
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd fineas
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. **Start the development server**
+3. **Start the development server**
    ```bash
    npm start
+   # or
+   npm run android  # for Android
+   npm run ios      # for iOS
+   npm run web      # for web
    ```
 
-3. **Run on your device/simulator**
+4. **Run on your device**
    - Press `i` for iOS simulator
    - Press `a` for Android emulator
-   - Scan QR code with Expo Go app on your phone
+   - Scan QR code with Expo Go app on your physical device
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-src/
-└── screens/
-    └── MainScreen.tsx    # Single main screen component
+fineas/
+├── src/
+│   └── screens/
+│       └── MainScreen.tsx    # Main application screen with all features
+├── assets/                   # App icons and splash screens
+├── App.tsx                   # Root component
+├── app.json                  # Expo configuration
+├── package.json              # Dependencies and scripts
+└── README.md                 # This file
 ```
 
-## How to Use
+## 🚀 Usage Guide
 
-1. **Add Income**: Select "💰 Income", enter amount and description
-2. **Add Expense**: Select "💸 Expense", enter amount and description
-3. **View Totals**: See your income, expenses, and balance at the top
-4. **Track History**: Scroll down to see all your transactions
+### Adding Transactions
 
-## Customization Ideas
+1. Navigate to the **Home** tab
+2. Select transaction type:
+   - 💸 **Expense** - Money going out
+   - 💰 **Income** - Money coming in
+3. Enter the amount (in your base currency)
+4. Add a description
+5. Tap "Add Transaction"
 
-This is a perfect starting point! Here are some features you could add:
+**Note**: If you try to add an expense that exceeds your balance, you'll see:
+- A visual warning in the input field
+- A confirmation dialog before proceeding
 
-- [ ] **Categories** - Group transactions by type (Food, Transport, etc.)
-- [ ] **Date Picker** - Choose when transactions happened
-- [ ] **Data Persistence** - Save transactions to device storage
-- [ ] **Charts** - Visual representation of spending
-- [ ] **Budget Limits** - Set spending goals
-- [ ] **Multiple Screens** - Separate screens for different features
-- [ ] **Search & Filter** - Find specific transactions
-- [ ] **Export Data** - Save your financial data
+### Viewing Currency Rates
 
-## Code Structure
+1. Navigate to the **Currencies** tab
+2. View live exchange rates relative to your base currency
+3. Toggle "Show Major Currencies Only" to filter the list
+4. Tap "🔄 Refresh" to update rates manually
 
-The app uses:
-- **useState** for managing transaction data
-- **Simple functions** for calculations (no complex utilities)
-- **Inline styles** for easy customization
-- **Basic React Native components** (View, Text, TextInput, TouchableOpacity)
+### Customizing Settings
 
-## Learning Path
+1. Navigate to the **Settings** tab
+2. **Dark Mode**: Toggle between light and dark themes
+3. **Font Size**: Choose Small, Medium, or Large
+4. **Base Currency**: Select from 8 popular currencies
 
-1. **Start here** - Understand the basic structure
-2. **Add features** - Implement one new feature at a time
-3. **Refactor** - Improve code organization as you learn
-4. **Expand** - Add more screens and navigation
-5. **Polish** - Add animations, better styling, etc.
+## 🎨 Features in Detail
+
+### Smart Balance Warnings
+
+The app includes intelligent warnings to prevent overspending:
+
+- **Real-time Validation**: As you type an expense amount, the app checks if it exceeds your balance
+- **Visual Feedback**: Input field turns red with a warning message
+- **Confirmation Dialog**: Before adding an expense that exceeds balance, you'll see:
+  - Current balance
+  - Expense amount
+  - Option to cancel or proceed
+
+### Currency Exchange Rates
+
+- **Free API Integration**: Uses exchangerate-api.com (no API key required)
+- **Live Updates**: Real-time exchange rates
+- **Flexible Display**: Show 20 major currencies or all available currencies
+- **Base Currency**: All rates shown relative to your selected base currency
+
+### Theme System
+
+- **Dark Mode**: Complete dark theme with carefully chosen colors
+- **Light Mode**: Clean, bright interface
+- **Consistent Theming**: All components adapt to the selected theme
+- **Persistent**: Theme preference maintained during app session
+
+### Accessibility
+
+- **Font Scaling**: Three size options (Small: 85%, Medium: 100%, Large: 120%)
+- **App-wide Application**: Font size affects all text elements
+- **Improved Readability**: Better experience for users with visual needs
+
+## 🔧 Configuration
+
+### Base Currency Options
+
+Currently supported base currencies:
+- USD (US Dollar)
+- EUR (Euro)
+- GBP (British Pound)
+- JPY (Japanese Yen)
+- CHF (Swiss Franc)
+- CAD (Canadian Dollar)
+- AUD (Australian Dollar)
+- CNY (Chinese Yuan)
+
+### Major Currencies Displayed
+
+When "Show Major Currencies Only" is enabled, the app displays:
+USD, GBP, JPY, CHF, CAD, AUD, CNY, INR, BRL, RUB, NZD, SEK, NOK, DKK, PLN, MXN, ZAR, TRY, KRW, SGD
+
+## 📱 Screenshots & Features
+
+### Home Tab
+- Transaction entry form
+- Financial summary cards
+- Transaction history list
+- Real-time balance updates
+
+### Currencies Tab
+- Live exchange rates
+- Currency filter toggle
+- Base currency display
+- Refresh functionality
+
+### Settings Tab
+- Dark/Light theme toggle
+- Font size selector
+- Base currency selector
+
+## 🚧 Future Enhancements
+
+Potential features for future versions:
+
+- [ ] Data persistence (AsyncStorage/SQLite)
+- [ ] Transaction categories and tags
+- [ ] Date range filtering
+- [ ] Charts and graphs
+- [ ] Budget limits and goals
+- [ ] Export/Import transactions
+- [ ] Multiple currency accounts
+- [ ] Recurring transactions
+- [ ] Transaction search and filters
+- [ ] Backup and sync functionality
+
+## 🤝 Contributing
+
+This is a learning project! Feel free to:
+- Fork the repository
+- Add new features
+- Improve existing functionality
+- Fix bugs
+- Enhance the UI/UX
+
+## 📄 License
+
+This project is open source and available for learning and personal use.
+
+## 🙏 Acknowledgments
+
+- Built with [React Native](https://reactnative.dev/)
+- Powered by [Expo](https://expo.dev/)
+- Currency data from [exchangerate-api.com](https://www.exchangerate-api.com/)
 
 ---
 
-**Perfect for learning React Native! Build something amazing! 🚀**
+**Track your money, build your future** 💰
+
+Made with ❤️ using React Native and Expo
