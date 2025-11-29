@@ -92,7 +92,7 @@ Fineas is a comprehensive personal finance management app that helps you:
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/oKhodus/fineas.git
    cd fineas
    ```
 
@@ -105,15 +105,11 @@ Fineas is a comprehensive personal finance management app that helps you:
    ```bash
    npm start
    # or
-   npm run android  # for Android
-   npm run ios      # for iOS
    npm run web      # for web
    ```
 
 4. **Run on your device**
-   - Press `i` for iOS simulator
-   - Press `a` for Android emulator
-   - Scan QR code with Expo Go app on your physical device
+   - Scan QR code with Expo Go app on your physical device (if not web)
 
 ## 📁 Project Structure
 
