@@ -34,6 +34,7 @@ const MainScreen = () => {
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [activeTab, setActiveTab] = useState<'home' | 'currencies' | 'settings'>('home');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [currencies, setCurrencies] = useState<CurrencyRate[]>([]);
   const [loadingCurrencies, setLoadingCurrencies] = useState(false);
   const [baseCurrency, setBaseCurrency] = useState('EUR');
@@ -139,34 +140,36 @@ const MainScreen = () => {
 
   const renderHomeTab = () => {
     const themeStyles = getThemeStyles();
+    const fontMultiplier = themeStyles.fontMultiplier;
     return (
       <>
         {/* Header */}
         <View style={[styles.header, themeStyles.header]}>
-          <Text style={[styles.title, themeStyles.title]}>fineas</Text>
-          <Text style={[styles.subtitle, themeStyles.subtitle]}>Track your money, build your future</Text>
+          <Text style={[styles.title, themeStyles.title, { fontSize: 28 * fontMultiplier }]}>fineas</Text>
+          <Text style={[styles.subtitle, themeStyles.subtitle, { fontSize: 16 * fontMultiplier }]}>Track your money, build your future</Text>
         </View>
 
         {/* Summary Cards */}
         <View style={styles.summaryContainer}>
           <View style={[styles.summaryCard, themeStyles.card]}>
-            <Text style={[styles.summaryLabel, themeStyles.textSecondary]}>Income</Text>
-            <Text style={styles.summaryAmountIncome}>
+            <Text style={[styles.summaryLabel, themeStyles.textSecondary, { fontSize: 12 * fontMultiplier }]}>Income</Text>
+            <Text style={[styles.summaryAmountIncome, { fontSize: 16 * fontMultiplier }]}>
               {formatCurrency(getTotalIncome())}
             </Text>
           </View>
           
           <View style={[styles.summaryCard, themeStyles.card]}>
-            <Text style={[styles.summaryLabel, themeStyles.textSecondary]}>Expenses</Text>
-            <Text style={styles.summaryAmountExpense}>
+            <Text style={[styles.summaryLabel, themeStyles.textSecondary, { fontSize: 12 * fontMultiplier }]}>Expenses</Text>
+            <Text style={[styles.summaryAmountExpense, { fontSize: 16 * fontMultiplier }]}>
               {formatCurrency(getTotalExpenses())}
             </Text>
           </View>
           
           <View style={[styles.summaryCard, themeStyles.card]}>
-            <Text style={[styles.summaryLabel, themeStyles.textSecondary]}>Balance</Text>
+            <Text style={[styles.summaryLabel, themeStyles.textSecondary, { fontSize: 12 * fontMultiplier }]}>Balance</Text>
             <Text style={[
               styles.summaryAmount,
+              { fontSize: 16 * fontMultiplier },
               getBalance() >= 0 ? styles.positiveBalance : styles.negativeBalance
             ]}>
               {formatCurrency(getBalance())}
@@ -176,7 +179,7 @@ const MainScreen = () => {
 
         {/* Add Transaction Form */}
         <View style={[styles.formContainer, themeStyles.card]}>
-          <Text style={[styles.formTitle, themeStyles.text]}>Add New Transaction</Text>
+          <Text style={[styles.formTitle, themeStyles.text, { fontSize: 18 * fontMultiplier }]}>Add New Transaction</Text>
           
           {/* Type Selector */}
           <View style={styles.typeSelector}>
@@ -190,6 +193,7 @@ const MainScreen = () => {
             >
               <Text style={[
                 styles.typeButtonText,
+                { fontSize: 14 * fontMultiplier },
                 type === 'expense' ? styles.typeButtonTextActive : themeStyles.textSecondary
               ]}>
                 💸 Expense
@@ -206,6 +210,7 @@ const MainScreen = () => {
             >
               <Text style={[
                 styles.typeButtonText,
+                { fontSize: 14 * fontMultiplier },
                 type === 'income' ? styles.typeButtonTextActive : themeStyles.textSecondary
               ]}>
                 💰 Income
@@ -215,9 +220,9 @@ const MainScreen = () => {
 
           {/* Amount Input */}
           <View style={styles.inputContainer}>
-            <Text style={[styles.inputLabel, themeStyles.text]}>Amount (€)</Text>
+            <Text style={[styles.inputLabel, themeStyles.text, { fontSize: 14 * fontMultiplier }]}>Amount (€)</Text>
             <TextInput
-              style={[styles.amountInput, themeStyles.input]}
+              style={[styles.amountInput, themeStyles.input, { fontSize: 16 * fontMultiplier }]}
               placeholder="0.00"
               placeholderTextColor={isDarkMode ? '#999' : '#999'}
               value={amount}
@@ -228,9 +233,9 @@ const MainScreen = () => {
 
           {/* Description Input */}
           <View style={styles.inputContainer}>
-            <Text style={[styles.inputLabel, themeStyles.text]}>Description</Text>
+            <Text style={[styles.inputLabel, themeStyles.text, { fontSize: 14 * fontMultiplier }]}>Description</Text>
             <TextInput
-              style={[styles.descriptionInput, themeStyles.input]}
+              style={[styles.descriptionInput, themeStyles.input, { fontSize: 16 * fontMultiplier }]}
               placeholder="What was this for?"
               placeholderTextColor={isDarkMode ? '#999' : '#999'}
               value={description}
@@ -240,20 +245,20 @@ const MainScreen = () => {
 
           {/* Add Button */}
           <TouchableOpacity style={styles.addButton} onPress={addTransaction}>
-            <Text style={styles.addButtonText}>Add Transaction</Text>
+            <Text style={[styles.addButtonText, { fontSize: 16 * fontMultiplier }]}>Add Transaction</Text>
           </TouchableOpacity>
         </View>
 
         {/* Transactions List */}
         <View style={[styles.transactionsContainer, themeStyles.card]}>
-          <Text style={[styles.transactionsTitle, themeStyles.text]}>
+          <Text style={[styles.transactionsTitle, themeStyles.text, { fontSize: 18 * fontMultiplier }]}>
             Recent Transactions ({transactions.length})
           </Text>
           
           {transactions.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={[styles.emptyStateText, themeStyles.textSecondary]}>No transactions yet</Text>
-              <Text style={[styles.emptyStateSubtext, themeStyles.textSecondary]}>
+              <Text style={[styles.emptyStateText, themeStyles.textSecondary, { fontSize: 16 * fontMultiplier }]}>No transactions yet</Text>
+              <Text style={[styles.emptyStateSubtext, themeStyles.textSecondary, { fontSize: 14 * fontMultiplier }]}>
                 Add your first transaction above to get started!
               </Text>
             </View>
@@ -261,20 +266,21 @@ const MainScreen = () => {
             transactions.map((transaction) => (
               <View key={transaction.id} style={[styles.transactionItem, themeStyles.border]}>
                 <View style={styles.transactionLeft}>
-                  <Text style={styles.transactionType}>
+                  <Text style={[styles.transactionType, { fontSize: 20 * fontMultiplier }]}>
                     {transaction.type === 'income' ? '💰' : '💸'}
                   </Text>
                   <View>
-                    <Text style={[styles.transactionDescription, themeStyles.text]}>
+                    <Text style={[styles.transactionDescription, themeStyles.text, { fontSize: 16 * fontMultiplier }]}>
                       {transaction.description}
                     </Text>
-                    <Text style={[styles.transactionDate, themeStyles.textSecondary]}>
+                    <Text style={[styles.transactionDate, themeStyles.textSecondary, { fontSize: 12 * fontMultiplier }]}>
                       {transaction.date.toLocaleDateString()}
                     </Text>
                   </View>
                 </View>
                 <Text style={[
                   styles.transactionAmount,
+                  { fontSize: 16 * fontMultiplier },
                   transaction.type === 'income' ? styles.incomeAmount : styles.expenseAmount
                 ]}>
                   {transaction.type === 'income' ? '+' : '-'}
@@ -290,37 +296,38 @@ const MainScreen = () => {
 
   const renderCurrenciesTab = () => {
     const themeStyles = getThemeStyles();
+    const fontMultiplier = themeStyles.fontMultiplier;
     return (
       <>
         <View style={[styles.header, themeStyles.header]}>
-          <Text style={[styles.title, themeStyles.title]}>Currency Rates</Text>
-          <Text style={[styles.subtitle, themeStyles.subtitle]}>Live exchange rates</Text>
+          <Text style={[styles.title, themeStyles.title, { fontSize: 28 * fontMultiplier }]}>Currency Rates</Text>
+          <Text style={[styles.subtitle, themeStyles.subtitle, { fontSize: 16 * fontMultiplier }]}>Live exchange rates</Text>
         </View>
 
         <View style={[styles.currenciesContainer, themeStyles.card]}>
           {loadingCurrencies ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#2E86AB" />
-              <Text style={[styles.loadingText, themeStyles.textSecondary]}>Loading rates...</Text>
+              <Text style={[styles.loadingText, themeStyles.textSecondary, { fontSize: 14 * fontMultiplier }]}>Loading rates...</Text>
             </View>
           ) : currencies.length > 0 ? (
             <>
               <View style={styles.currencyHeader}>
-                <Text style={[styles.currencyHeaderText, themeStyles.text]}>Base: {baseCurrency}</Text>
+                <Text style={[styles.currencyHeaderText, themeStyles.text, { fontSize: 16 * fontMultiplier }]}>Base: {baseCurrency}</Text>
                 <TouchableOpacity
                   style={[styles.refreshButton, themeStyles.button]}
                   onPress={fetchCurrencies}
                 >
-                  <Text style={[styles.refreshButtonText, themeStyles.text]}>🔄 Refresh</Text>
+                  <Text style={[styles.refreshButtonText, themeStyles.text, { fontSize: 14 * fontMultiplier }]}>🔄 Refresh</Text>
                 </TouchableOpacity>
               </View>
               {currencies.map((currency) => (
                 <View key={currency.code} style={[styles.currencyItem, themeStyles.border]}>
                   <View style={styles.currencyLeft}>
-                    <Text style={[styles.currencyCode, themeStyles.text]}>{currency.code}</Text>
-                    <Text style={[styles.currencyName, themeStyles.textSecondary]}>{currency.name}</Text>
+                    <Text style={[styles.currencyCode, themeStyles.text, { fontSize: 18 * fontMultiplier }]}>{currency.code}</Text>
+                    <Text style={[styles.currencyName, themeStyles.textSecondary, { fontSize: 14 * fontMultiplier }]}>{currency.name}</Text>
                   </View>
-                  <Text style={[styles.currencyRate, themeStyles.text]}>
+                  <Text style={[styles.currencyRate, themeStyles.text, { fontSize: 16 * fontMultiplier }]}>
                     {currency.rate.toFixed(4)}
                   </Text>
                 </View>
@@ -328,7 +335,7 @@ const MainScreen = () => {
             </>
           ) : (
             <View style={styles.emptyState}>
-              <Text style={[styles.emptyStateText, themeStyles.textSecondary]}>No currency data available</Text>
+              <Text style={[styles.emptyStateText, themeStyles.textSecondary, { fontSize: 16 * fontMultiplier }]}>No currency data available</Text>
             </View>
           )}
         </View>
@@ -338,18 +345,19 @@ const MainScreen = () => {
 
   const renderSettingsTab = () => {
     const themeStyles = getThemeStyles();
+    const fontMultiplier = themeStyles.fontMultiplier;
     return (
       <>
         <View style={[styles.header, themeStyles.header]}>
-          <Text style={[styles.title, themeStyles.title]}>Settings</Text>
-          <Text style={[styles.subtitle, themeStyles.subtitle]}>Customize your app</Text>
+          <Text style={[styles.title, themeStyles.title, { fontSize: 28 * fontMultiplier }]}>Settings</Text>
+          <Text style={[styles.subtitle, themeStyles.subtitle, { fontSize: 16 * fontMultiplier }]}>Customize your app</Text>
         </View>
 
         <View style={[styles.settingsContainer, themeStyles.card]}>
           <View style={[styles.settingItem, themeStyles.border]}>
             <View style={styles.settingLeft}>
-              <Text style={[styles.settingLabel, themeStyles.text]}>Dark Mode</Text>
-              <Text style={[styles.settingDescription, themeStyles.textSecondary]}>
+              <Text style={[styles.settingLabel, themeStyles.text, { fontSize: 16 * themeStyles.fontMultiplier }]}>Dark Mode</Text>
+              <Text style={[styles.settingDescription, themeStyles.textSecondary, { fontSize: 14 * themeStyles.fontMultiplier }]}>
                 Switch between light and dark theme
               </Text>
             </View>
@@ -360,12 +368,88 @@ const MainScreen = () => {
               thumbColor={isDarkMode ? '#fff' : '#f4f3f4'}
             />
           </View>
+
+          <View style={[styles.settingItem, themeStyles.border]}>
+            <View style={styles.settingLeft}>
+              <Text style={[styles.settingLabel, themeStyles.text, { fontSize: 16 * themeStyles.fontMultiplier }]}>Font Size</Text>
+              <Text style={[styles.settingDescription, themeStyles.textSecondary, { fontSize: 14 * themeStyles.fontMultiplier }]}>
+                Adjust the text size throughout the app
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.fontSizeSelector}>
+            <TouchableOpacity
+              style={[
+                styles.fontSizeButton,
+                themeStyles.button,
+                fontSize === 'small' && styles.fontSizeButtonActive
+              ]}
+              onPress={() => setFontSize('small')}
+            >
+              <Text style={[
+                styles.fontSizeButtonText,
+                fontSize === 'small' ? styles.fontSizeButtonTextActive : themeStyles.textSecondary,
+                { fontSize: 12 * themeStyles.fontMultiplier }
+              ]}>
+                Small
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.fontSizeButton,
+                themeStyles.button,
+                fontSize === 'medium' && styles.fontSizeButtonActive
+              ]}
+              onPress={() => setFontSize('medium')}
+            >
+              <Text style={[
+                styles.fontSizeButtonText,
+                fontSize === 'medium' ? styles.fontSizeButtonTextActive : themeStyles.textSecondary,
+                { fontSize: 14 * themeStyles.fontMultiplier }
+              ]}>
+                Medium
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.fontSizeButton,
+                themeStyles.button,
+                fontSize === 'large' && styles.fontSizeButtonActive
+              ]}
+              onPress={() => setFontSize('large')}
+            >
+              <Text style={[
+                styles.fontSizeButtonText,
+                fontSize === 'large' ? styles.fontSizeButtonTextActive : themeStyles.textSecondary,
+                { fontSize: 16 * themeStyles.fontMultiplier }
+              ]}>
+                Large
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </>
     );
   };
 
+  const getFontSizeMultiplier = () => {
+    switch (fontSize) {
+      case 'small':
+        return 0.85;
+      case 'medium':
+        return 1.0;
+      case 'large':
+        return 1.2;
+      default:
+        return 1.0;
+    }
+  };
+
   const getThemeStyles = () => {
+    const fontMultiplier = getFontSizeMultiplier();
     if (isDarkMode) {
       return {
         header: { backgroundColor: '#1a1a1a' },
@@ -377,6 +461,7 @@ const MainScreen = () => {
         button: { backgroundColor: '#3a3a3a', borderColor: '#4a4a4a' },
         input: { backgroundColor: '#3a3a3a', borderColor: '#4a4a4a', color: '#ffffff' },
         border: { borderBottomColor: '#3a3a3a' },
+        fontMultiplier,
       };
     }
     return {
@@ -389,6 +474,7 @@ const MainScreen = () => {
       button: { backgroundColor: '#f5f5f5', borderColor: '#e0e0e0' },
       input: { backgroundColor: '#f8f9fa', borderColor: '#e0e0e0', color: '#333' },
       border: { borderBottomColor: '#f0f0f0' },
+      fontMultiplier,
     };
   };
 
@@ -413,6 +499,7 @@ const MainScreen = () => {
         >
           <Text style={[
             styles.navButtonText,
+            { fontSize: 14 * themeStyles.fontMultiplier },
             activeTab === 'home' ? styles.navButtonTextActive : themeStyles.textSecondary
           ]}>
             Home
@@ -428,6 +515,7 @@ const MainScreen = () => {
         >
           <Text style={[
             styles.navButtonText,
+            { fontSize: 14 * themeStyles.fontMultiplier },
             activeTab === 'currencies' ? styles.navButtonTextActive : themeStyles.textSecondary
           ]}>
             Currencies
@@ -443,6 +531,7 @@ const MainScreen = () => {
         >
           <Text style={[
             styles.navButtonText,
+            { fontSize: 14 * themeStyles.fontMultiplier },
             activeTab === 'settings' ? styles.navButtonTextActive : themeStyles.textSecondary
           ]}>
             Settings
@@ -831,6 +920,34 @@ const styles = StyleSheet.create({
   settingDescription: {
     fontSize: 14,
     color: '#666',
+  },
+  fontSizeSelector: {
+    flexDirection: 'row',
+    marginTop: 8,
+    marginBottom: 8,
+    gap: 8,
+  },
+  fontSizeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  fontSizeButtonActive: {
+    backgroundColor: '#2E86AB',
+    borderColor: '#2E86AB',
+  },
+  fontSizeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  fontSizeButtonTextActive: {
+    color: '#fff',
   },
 });
 
