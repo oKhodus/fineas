@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -38,6 +38,7 @@ const MainScreen = () => {
   const [currencies, setCurrencies] = useState<CurrencyRate[]>([]);
   const [loadingCurrencies, setLoadingCurrencies] = useState(false);
   const [baseCurrency, setBaseCurrency] = useState('EUR');
+  const [showMajorCurrenciesOnly, setShowMajorCurrenciesOnly] = useState(true);
 
   const addTransaction = () => {
     if (!amount || !description.trim()) {
@@ -48,6 +49,40 @@ const MainScreen = () => {
     if (isNaN(numAmount) || numAmount <= 0) {
       Alert.alert('Error', 'Please enter a valid amount');
       return;
+    }
+
+    // Check if expense exceeds available balance
+    if (type === 'expense') {
+      const currentBalance = getBalance();
+      if (numAmount > currentBalance) {
+        Alert.alert(
+          'Insufficient Funds',
+          `You don't have enough funds for this expense.\n\nCurrent Balance: ${formatCurrency(currentBalance)}\nExpense Amount: ${formatCurrency(numAmount)}\n\nDo you want to proceed anyway?`,
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Proceed',
+              onPress: () => {
+                const newTransaction: Transaction = {
+                  id: Date.now().toString(),
+                  amount: numAmount,
+                  type,
+                  category: 'Expense',
+                  description: description.trim(),
+                  date: new Date(),
+                };
+                setTransactions([newTransaction, ...transactions]);
+                setAmount('');
+                setDescription('');
+              },
+            },
+          ]
+        );
+        return;
+      }
     }
 
     const newTransaction: Transaction = {
@@ -87,23 +122,33 @@ const MainScreen = () => {
     }).format(amount);
   };
 
-  const fetchCurrencies = async () => {
+  const fetchCurrencies = useCallback(async () => {
     setLoadingCurrencies(true);
     try {
       // Using exchangerate-api.com free API (no API key required for basic usage)
       const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${baseCurrency}`);
       const data = await response.json();
-      
+
       if (data.rates) {
-        // Most commonly used currencies
-        const popularCurrencies = ['USD', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'CNY', 'INR', 'BRL', 'RUB'];
-        const currencyList: CurrencyRate[] = popularCurrencies
+        let currencyCodes: string[];
+
+        if (showMajorCurrenciesOnly) {
+          // Show only major currencies
+          currencyCodes = getMajorCurrencies();
+        } else {
+          // Show all available currencies (excluding the base currency)
+          currencyCodes = Object.keys(data.rates).filter(code => code !== baseCurrency);
+        }
+
+        const currencyList: CurrencyRate[] = currencyCodes
           .filter(code => data.rates[code])
           .map(code => ({
             code,
             name: getCurrencyName(code),
             rate: data.rates[code],
-          }));
+          }))
+          .sort((a, b) => a.code.localeCompare(b.code)); // Sort alphabetically
+
         setCurrencies(currencyList);
       } else {
         Alert.alert('Error', 'Failed to fetch currency rates');
@@ -113,7 +158,7 @@ const MainScreen = () => {
     } finally {
       setLoadingCurrencies(false);
     }
-  };
+  }, [baseCurrency, showMajorCurrenciesOnly]);
 
   const getCurrencyName = (code: string): string => {
     const names: { [key: string]: string } = {
@@ -128,15 +173,36 @@ const MainScreen = () => {
       INR: 'Indian Rupee',
       BRL: 'Brazilian Real',
       RUB: 'Russian Ruble',
+      NZD: 'New Zealand Dollar',
+      SEK: 'Swedish Krona',
+      NOK: 'Norwegian Krone',
+      DKK: 'Danish Krone',
+      PLN: 'Polish Zloty',
+      HUF: 'Hungarian Forint',
+      CZK: 'Czech Koruna',
+      MXN: 'Mexican Peso',
+      ZAR: 'South African Rand',
+      TRY: 'Turkish Lira',
+      KRW: 'South Korean Won',
+      SGD: 'Singapore Dollar',
+      HKD: 'Hong Kong Dollar',
+      THB: 'Thai Baht',
+      IDR: 'Indonesian Rupiah',
+      MYR: 'Malaysian Ringgit',
+      PHP: 'Philippine Peso',
     };
     return names[code] || code;
+  };
+
+  const getMajorCurrencies = (): string[] => {
+    return ['USD', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'CNY', 'INR', 'BRL', 'RUB', 'NZD', 'SEK', 'NOK', 'DKK', 'PLN', 'MXN', 'ZAR', 'TRY', 'KRW', 'SGD'];
   };
 
   useEffect(() => {
     if (activeTab === 'currencies') {
       fetchCurrencies();
     }
-  }, [activeTab, baseCurrency]);
+  }, [activeTab, fetchCurrencies]);
 
   const renderHomeTab = () => {
     const themeStyles = getThemeStyles();
@@ -157,14 +223,14 @@ const MainScreen = () => {
               {formatCurrency(getTotalIncome())}
             </Text>
           </View>
-          
+
           <View style={[styles.summaryCard, themeStyles.card]}>
             <Text style={[styles.summaryLabel, themeStyles.textSecondary, { fontSize: 12 * fontMultiplier }]}>Expenses</Text>
             <Text style={[styles.summaryAmountExpense, { fontSize: 16 * fontMultiplier }]}>
               {formatCurrency(getTotalExpenses())}
             </Text>
           </View>
-          
+
           <View style={[styles.summaryCard, themeStyles.card]}>
             <Text style={[styles.summaryLabel, themeStyles.textSecondary, { fontSize: 12 * fontMultiplier }]}>Balance</Text>
             <Text style={[
@@ -180,7 +246,7 @@ const MainScreen = () => {
         {/* Add Transaction Form */}
         <View style={[styles.formContainer, themeStyles.card]}>
           <Text style={[styles.formTitle, themeStyles.text, { fontSize: 18 * fontMultiplier }]}>Add New Transaction</Text>
-          
+
           {/* Type Selector */}
           <View style={styles.typeSelector}>
             <TouchableOpacity
@@ -199,7 +265,7 @@ const MainScreen = () => {
                 💸 Expense
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={[
                 styles.typeButton,
@@ -222,13 +288,29 @@ const MainScreen = () => {
           <View style={styles.inputContainer}>
             <Text style={[styles.inputLabel, themeStyles.text, { fontSize: 14 * fontMultiplier }]}>Amount (€)</Text>
             <TextInput
-              style={[styles.amountInput, themeStyles.input, { fontSize: 16 * fontMultiplier }]}
+              style={[
+                styles.amountInput,
+                themeStyles.input,
+                { fontSize: 16 * fontMultiplier },
+                type === 'expense' && amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > getBalance() && styles.amountInputWarning,
+                type === 'expense' && amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > getBalance() && isDarkMode && { borderColor: '#F44336', backgroundColor: '#3a1f1f' }
+              ]}
               placeholder="0.00"
               placeholderTextColor={isDarkMode ? '#999' : '#999'}
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
             />
+            {type === 'expense' && amount && !isNaN(parseFloat(amount)) && parseFloat(amount) > getBalance() && (
+              <View style={[
+                styles.warningContainer,
+                isDarkMode && { backgroundColor: '#3a1f1f', borderLeftColor: '#F44336' }
+              ]}>
+                <Text style={[styles.warningText, { fontSize: 12 * fontMultiplier }]}>
+                  ⚠️ Insufficient funds! Your balance ({formatCurrency(getBalance())}) is less than this expense amount.
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Description Input */}
@@ -254,7 +336,7 @@ const MainScreen = () => {
           <Text style={[styles.transactionsTitle, themeStyles.text, { fontSize: 18 * fontMultiplier }]}>
             Recent Transactions ({transactions.length})
           </Text>
-          
+
           {transactions.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={[styles.emptyStateText, themeStyles.textSecondary, { fontSize: 16 * fontMultiplier }]}>No transactions yet</Text>
@@ -320,6 +402,21 @@ const MainScreen = () => {
                 >
                   <Text style={[styles.refreshButtonText, themeStyles.text, { fontSize: 14 * fontMultiplier }]}>🔄 Refresh</Text>
                 </TouchableOpacity>
+              </View>
+
+              <View style={[styles.currencyFilterContainer, themeStyles.border]}>
+                <View style={styles.currencyFilterLeft}>
+                  <Text style={[styles.currencyFilterLabel, themeStyles.text, { fontSize: 14 * fontMultiplier }]}>Show Major Currencies Only</Text>
+                  <Text style={[styles.currencyFilterDescription, themeStyles.textSecondary, { fontSize: 12 * fontMultiplier }]}>
+                    {showMajorCurrenciesOnly ? 'Showing 20 major currencies' : 'Showing all available currencies'}
+                  </Text>
+                </View>
+                <Switch
+                  value={showMajorCurrenciesOnly}
+                  onValueChange={setShowMajorCurrenciesOnly}
+                  trackColor={{ false: '#767577', true: '#2E86AB' }}
+                  thumbColor={showMajorCurrenciesOnly ? '#fff' : '#f4f3f4'}
+                />
               </View>
               {currencies.map((currency) => (
                 <View key={currency.code} style={[styles.currencyItem, themeStyles.border]}>
@@ -395,7 +492,7 @@ const MainScreen = () => {
                 Small
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={[
                 styles.fontSizeButton,
@@ -412,7 +509,7 @@ const MainScreen = () => {
                 Medium
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={[
                 styles.fontSizeButton,
@@ -429,6 +526,37 @@ const MainScreen = () => {
                 Large
               </Text>
             </TouchableOpacity>
+          </View>
+
+          <View style={[styles.settingItem, themeStyles.border, { marginTop: 16 }]}>
+            <View style={styles.settingLeft}>
+              <Text style={[styles.settingLabel, themeStyles.text, { fontSize: 16 * themeStyles.fontMultiplier }]}>Base Currency</Text>
+              <Text style={[styles.settingDescription, themeStyles.textSecondary, { fontSize: 14 * themeStyles.fontMultiplier }]}>
+                Select the base currency for exchange rates
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.baseCurrencySelector}>
+            {['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'CNY'].map((currency) => (
+              <TouchableOpacity
+                key={currency}
+                style={[
+                  styles.baseCurrencyButton,
+                  themeStyles.button,
+                  baseCurrency === currency && styles.baseCurrencyButtonActive
+                ]}
+                onPress={() => setBaseCurrency(currency)}
+              >
+                <Text style={[
+                  styles.baseCurrencyButtonText,
+                  { fontSize: 12 * themeStyles.fontMultiplier },
+                  baseCurrency === currency ? styles.baseCurrencyButtonTextActive : themeStyles.textSecondary
+                ]}>
+                  {currency}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
       </>
@@ -505,7 +633,7 @@ const MainScreen = () => {
             Home
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[
             styles.navButton,
@@ -521,7 +649,7 @@ const MainScreen = () => {
             Currencies
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[
             styles.navButton,
@@ -682,6 +810,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#e0e0e0',
+  },
+  amountInputWarning: {
+    borderColor: '#F44336',
+    borderWidth: 2,
+    backgroundColor: '#ffebee',
+  },
+  warningContainer: {
+    marginTop: 8,
+    padding: 10,
+    backgroundColor: '#ffebee',
+    borderRadius: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: '#F44336',
+  },
+  warningText: {
+    color: '#F44336',
+    fontSize: 12,
+    fontWeight: '500',
   },
   descriptionInput: {
     backgroundColor: '#f8f9fa',
@@ -948,6 +1094,58 @@ const styles = StyleSheet.create({
   },
   fontSizeButtonTextActive: {
     color: '#fff',
+  },
+  baseCurrencySelector: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+    marginBottom: 8,
+    gap: 8,
+  },
+  baseCurrencyButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    minWidth: 60,
+  },
+  baseCurrencyButtonActive: {
+    backgroundColor: '#2E86AB',
+    borderColor: '#2E86AB',
+  },
+  baseCurrencyButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  baseCurrencyButtonTextActive: {
+    color: '#fff',
+  },
+  currencyFilterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  currencyFilterLeft: {
+    flex: 1,
+    marginRight: 16,
+  },
+  currencyFilterLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  currencyFilterDescription: {
+    fontSize: 12,
+    color: '#666',
   },
 });
 
